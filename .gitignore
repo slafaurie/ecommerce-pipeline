@@ -10,4 +10,4 @@ __pycache__/
 # data 
 *.csv
 *.zip
-olist/data/
+**/data
