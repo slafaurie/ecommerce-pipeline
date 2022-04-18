@@ -1,9 +1,13 @@
+from asyncio.log import logger
 import pandas as pd
 import numpy as np
+import logging
 
 
 
 class BaseTransformer:
+    _logger = logging.getLogger(__name__)
+
 
     def _get_orders_with_multiple_seller(items):
         """
@@ -34,7 +38,7 @@ class BaseTransformer:
 
 
 
-class PaymentTransformer:
+class PaymentTransformer(BaseTransformer):
     def _flatten_columns(df_):
         """
         Flatten hierarchical columns of a dataframe by joining them with "_"
@@ -114,6 +118,7 @@ class PaymentTransformer:
 
     @classmethod
     def transform_payment(cls, payments):
+        cls._logger.info("Preparing Payments dataset...")
         return (
             payments
             .pipe(cls._aggregate_payment_data)
@@ -146,7 +151,7 @@ class ItemTransformer(BaseTransformer):
     
     @classmethod
     def transform_items(cls, items):
-
+        cls._logger.info("Preparing items dataset...")
         return (
            
                 items
@@ -156,8 +161,7 @@ class ItemTransformer(BaseTransformer):
         )
 
 
-
-class OrdersTransformer(BaseTransformer):
+class OrderCuratedTransformer(BaseTransformer):
 
     def _change_order_statuses(df_):
         status_map = {
@@ -243,7 +247,8 @@ class OrdersTransformer(BaseTransformer):
             df_
             .assign(
                 residual_stg = df_.gross_order_value - df_.payment_total_sum,
-                residual = lambda df: np.where(np.abs(df.residual_stg <= atol), 0, df.residual_stg)
+                residual = lambda df: np.where(np.abs(df.residual_stg <= atol), 0, df.residual_stg),
+                order_created_date = lambda df: pd.to_datetime(df.order_purchase_timestamp).dt.date
                 )
             .drop(columns=["residual_stg"])
         )
@@ -262,6 +267,7 @@ class OrdersTransformer(BaseTransformer):
             , "seller_id" : "object"
             , "customer_unique_id" : "object"
             , "order_status": "object"
+            , "order_created_date": "object"
             , "order_purchase_timestamp" : "object"
             , "order_approved_at": "object"
             , "order_delivered_carrier_date" : "object"
@@ -298,6 +304,7 @@ class OrdersTransformer(BaseTransformer):
 
         #
         datetime_cols = [
+            "order_created_date",
             "order_purchase_timestamp", 
             "order_approved_at", 
             "order_delivered_carrier_date",
@@ -311,14 +318,11 @@ class OrdersTransformer(BaseTransformer):
 
 
     @classmethod
-    def curate_orders(cls, orders, payments, items, seller, customer):
-
-        print("Preparing Payments")
+    def curate_orders_transient(cls, orders, payments, items, seller, customer):
         payments_stg = PaymentTransformer.transform_payment(payments)
-
-        print("Preparing Items")
         items_stg = ItemTransformer.transform_items(items)
 
+        cls._logger.info("Preparing orders dataset...")
         return (
             orders
             .pipe(cls._remove_order_with_multiple_seller, items)
