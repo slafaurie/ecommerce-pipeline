@@ -7,6 +7,7 @@ import pandas as pd
 import logging
 
 
+
 class DataModel:
     """
     Class to handle all load/export within the ETL

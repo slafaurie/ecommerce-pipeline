@@ -1,0 +1,18 @@
+services:
+  airflow:
+    image: airflow-dev
+    restart: always
+    container_name: airflow
+    volumes:
+      # - ./dags/airflow/airflow.cfg:/opt/airflow/airflow.cfg
+      - ./dags:/opt/airflow/dags
+    ports:
+      - 8080:8080
+    healthcheck:
+      test: [ "CMD", "nc", "-z", "airflow", "8080" ]
+      timeout: 45s
+      interval: 10s
+      retries: 10
+    environment:
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
