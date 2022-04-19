@@ -161,7 +161,7 @@ class ItemTransformer(BaseTransformer):
         )
 
 
-class OrderCuratedTransformer(BaseTransformer):
+class OrderLeanTransformer(BaseTransformer):
 
     def _change_order_statuses(df_):
         status_map = {
