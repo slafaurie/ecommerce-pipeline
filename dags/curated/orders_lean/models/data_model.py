@@ -9,6 +9,7 @@ import logging
 
 
 class DataModel:
+
     """
     Class to handle all load/export within the ETL
     """
@@ -18,19 +19,36 @@ class DataModel:
     _bucket = _s3.Bucket("slafaurie-airflow")
     _prefix = "olist/one-run"
     _logger = logging.getLogger(__name__)
+    local = True
+    _local_path = 'C:\\Users\\chanl\\Documents\\cursos\\udemy\\airflow-hands-on-guide\\portfolio\\data'
+
+
+    @classmethod
+    def print_mode(cls):
+        if cls.local:
+            cls._logger.info(f"Data model is set to local. All files will be stored in {cls._local_path}")
+        else:
+            cls._logger.info(f"Data model is set to cloud. All files will be store in {cls._bucket}/{cls._prefix}")
 
     @classmethod
     def read_parquet_to_dataframe(cls, zone: str, dataset: str):
         """
         Read a parquet file stored in S3 and return a dataframe
         """
-        key = f"{cls._prefix}/{zone}/{dataset}"
-        cls._logger.info(f"Reading file {dataset} from {cls._bucket.name} in {zone} zone")
-        obj = cls._bucket.Object(key=key).get().get('Body').read()
-        if not obj:
-            raise Exception(f"{key} does not exist")
-        data = BytesIO(obj)
-        df = pd.read_parquet(data)
+        cls._logger.info(f"Reading file {dataset} in {zone} zone")
+        if cls.local:
+            path = os.path.join(cls._local_path, zone, dataset)
+            if not os.path.exists(path):
+                raise Exception(f"{path} is not found")
+            df = pd.read_parquet(path)
+
+        else:
+            key = f"{cls._prefix}/{zone}/{dataset}"
+            obj = cls._bucket.Object(key=key).get().get('Body').read()
+            if not obj:
+                raise Exception(f"{key} does not exist")
+            data = BytesIO(obj)
+            df = pd.read_parquet(data)
         return df
         
 
@@ -39,8 +57,17 @@ class DataModel:
         """
         Write a pandas DF as parquet
         """ 
-        key = f"{cls._prefix}/{zone}/{dataset}"
-        out_buffer =  BytesIO()
-        df.to_parquet(out_buffer, index=False)
-        cls._logger.info(f"Writing file {dataset} to {cls._bucket.name} in {zone} zone")
-        cls._bucket.put_object(Body=out_buffer.getvalue(), Key=key)
+
+        cls._logger.info(f"Writing file {dataset} in {zone} zone")
+
+        if cls.local:
+            path = os.path.join(cls._local_path, zone, dataset)
+            df.to_parquet(path, index=False)
+
+        else:
+            key = f"{cls._prefix}/{zone}/{dataset}"
+            out_buffer =  BytesIO()
+            df.to_parquet(out_buffer, index=False)
+            cls._bucket.put_object(Body=out_buffer.getvalue(), Key=key)
+
+    

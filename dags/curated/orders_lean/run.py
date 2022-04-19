@@ -20,6 +20,7 @@ def run():
     logger.info("Start loading process...")
 
     # load
+    DataModel.print_mode()
     orders = DataModel.read_parquet_to_dataframe(zone=ZONE, dataset="olist_orders_dataset.parquet")
     items = DataModel.read_parquet_to_dataframe(zone=ZONE, dataset="olist_order_items_dataset.parquet")
     payments = DataModel.read_parquet_to_dataframe(zone=ZONE, dataset="olist_order_payments_dataset.parquet")
