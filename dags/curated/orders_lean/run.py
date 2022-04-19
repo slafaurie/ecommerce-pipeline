@@ -3,8 +3,8 @@
 
 import logging
 
-from models.data_model import DataModel
-from models.transformer import OrderCuratedTransformer
+from common.data_model import DataModel
+from curated.orders_lean.models.transformer import OrderLeanTransformer
 
 
 def run():
@@ -20,6 +20,7 @@ def run():
     logger.info("Start loading process...")
 
     # load
+    DataModel.print_mode()
     orders = DataModel.read_parquet_to_dataframe(zone=ZONE, dataset="olist_orders_dataset.parquet")
     items = DataModel.read_parquet_to_dataframe(zone=ZONE, dataset="olist_order_items_dataset.parquet")
     payments = DataModel.read_parquet_to_dataframe(zone=ZONE, dataset="olist_order_payments_dataset.parquet")
@@ -28,7 +29,7 @@ def run():
 
     # transform
     logger.info("Start transformation process...")
-    order_lean = OrderCuratedTransformer.curate_orders_transient(orders, payments, items, seller, customer)
+    order_lean = OrderLeanTransformer.curate_orders_transient(orders, payments, items, seller, customer)
 
     # save
     DataModel.write_df_to_s3_as_parquet(order_lean, zone="transient", dataset="orders_lean.parquet")
