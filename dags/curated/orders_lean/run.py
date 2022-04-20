@@ -29,7 +29,7 @@ def run():
 
     # transform
     logger.info("Start transformation process...")
-    order_lean = OrderLeanTransformer.curate_orders_transient(orders, payments, items, seller, customer)
+    order_lean = OrderLeanTransformer.curate_orders_lean(orders, payments, items, seller, customer)
 
     # save
     DataModel.write_df_to_s3_as_parquet(order_lean, zone="transient", dataset="orders_lean.parquet")

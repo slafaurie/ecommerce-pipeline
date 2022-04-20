@@ -318,7 +318,7 @@ class OrderLeanTransformer(BaseTransformer):
 
 
     @classmethod
-    def curate_orders_transient(cls, orders, payments, items, seller, customer):
+    def curate_orders_lean(cls, orders, payments, items, seller, customer):
         payments_stg = PaymentTransformer.transform_payment(payments)
         items_stg = ItemTransformer.transform_items(items)
 
