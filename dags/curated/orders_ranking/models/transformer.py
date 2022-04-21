@@ -9,7 +9,7 @@ class OrderRankingTransformer:
     _logger = logging.getLogger(__name__)
 
 
-    def _add_ranking_columns(cls, df_):
+    def _add_ranking_columns(df_):
         customer_col = "customer_unique_id"
         sort_col = "order_purchase_timestamp"
 
@@ -20,7 +20,7 @@ class OrderRankingTransformer:
         }
         for col, ranking in ranking_dict.items():
             df_.loc[:, col] = row_number(df_, *ranking)
-        return 
+        return df_
         
     def _clean_ranking_at_delivered_columns(df_):
         """
