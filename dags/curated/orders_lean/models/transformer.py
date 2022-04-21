@@ -1,8 +1,8 @@
-from asyncio.log import logger
 import pandas as pd
 import numpy as np
 import logging
 
+from common.utils import flatten_columns
 
 
 class BaseTransformer:
@@ -39,14 +39,6 @@ class BaseTransformer:
 
 
 class PaymentTransformer(BaseTransformer):
-    def _flatten_columns(df_):
-        """
-        Flatten hierarchical columns of a dataframe by joining them with "_"
-        """
-        new_columns = ["_".join(cs) for cs in df_.columns.to_flat_index()]
-        df_.columns = new_columns
-        return df_
-
     def _select_payment_cols(df_):
         """
         Select columns to be present in the curated orders. Installments only makes sense with credit card 
@@ -122,7 +114,7 @@ class PaymentTransformer(BaseTransformer):
         return (
             payments
             .pipe(cls._aggregate_payment_data)
-            .pipe(cls._flatten_columns)
+            .pipe(flatten_columns)
             .pipe(cls._select_payment_cols)
             .pipe(cls._fillna_payment)
             .pipe(cls._add_total_payment)
@@ -318,7 +310,7 @@ class OrderLeanTransformer(BaseTransformer):
 
 
     @classmethod
-    def curate_orders_transient(cls, orders, payments, items, seller, customer):
+    def curate_orders_lean(cls, orders, payments, items, seller, customer):
         payments_stg = PaymentTransformer.transform_payment(payments)
         items_stg = ItemTransformer.transform_items(items)
 
