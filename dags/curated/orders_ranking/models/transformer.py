@@ -10,6 +10,7 @@ class OrderRankingTransformer:
 
 
     def _add_ranking_columns(df_):
+        df_ = df_.copy()
         customer_col = "customer_unique_id"
         sort_col = "order_purchase_timestamp"
 
@@ -74,16 +75,53 @@ class OrderRankingTransformer:
         df_.loc[:, "month_from_last_order"] = np.where(df_.last_order_timestamp.isnull(), pd.NA, df_.month_from_last_order)
         return df_
 
+    def _select_columns(df_):
+        """
+        Select only the columns to be used.
+        """
+        
+        columns_to_use = [
+            "order_id"
+            , "seller_id"
+            , "customer_unique_id"
+            , "order_status"
+            , "order_purchase_timestamp"
+            , "order_created_date"
+        ]
+
+        return df_[columns_to_use]
+
+
+    def _final_clean_up(df_):
+        """
+        Select the columns to persist
+        """
+
+        columns_to_persist = {
+            "order_id":"object",
+            "order_ranking": "int64",
+            "order_ranking_delivered": "Int64",
+            "order_at_seller_ranking_delivered": "Int64",
+            "days_from_last_order":"Int64",
+            "month_from_last_order":"Int64"
+        }
+
+        df_ = df_[columns_to_persist.keys()].astype(columns_to_persist)
+
+        return df_
+
     @classmethod
     def curate_order_rankings(cls, df_):
 
         return (
             df_
+            .pipe(cls._select_columns)
             .pipe(cls._add_ranking_columns)
             .pipe(cls._clean_ranking_at_delivered_columns)
             .pipe(cls._add_last_order_timestamp)
             .pipe(cls._add_time_diff_columns)
             .pipe(cls._clean_month_diff)
+            .pipe(cls._final_clean_up)
         )
 
 
