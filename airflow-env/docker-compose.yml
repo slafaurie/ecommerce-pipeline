@@ -5,7 +5,7 @@ services:
     container_name: airflow
     volumes:
       # - ./dags/airflow/airflow.cfg:/opt/airflow/airflow.cfg
-      - ./dags:/opt/airflow/dags
+      - ./../dags:/opt/airflow/dags
     ports:
       - 8080:8080
     healthcheck:
