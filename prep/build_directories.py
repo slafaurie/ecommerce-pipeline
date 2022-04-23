@@ -73,9 +73,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--reset", type=bool)
     args = parser.parse_args()
-    
+
     set_dir_to_parent()
-    if args:
+    if args.reset:
         delete_data_folder(ROOT)
     create_data_folder(ROOT, folders)
 
