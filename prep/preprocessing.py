@@ -2,6 +2,11 @@ import pandas as pd
 import os
 import logging
 
+from prep_utils.constants import DataRoot
+from prep_utils.preprocess import get_orders_with_multiple_seller, remove_order_with_multiple_seller
+from prep_utils.chunk_data import chunk_dataframe, filter_days_without_items_and_payments
+
+
 # logger
 logging.basicConfig(
     level= logging.INFO,
@@ -9,9 +14,11 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+
 def set_dir_to_parent():
     """
     Set the working directory the root of the project.
+    
     """
     currentdir = os.path.dirname(os.path.realpath(__file__))
     parentdir = os.path.dirname(currentdir)
@@ -22,7 +29,6 @@ def save_to_parquet(df_, path, filename):
     """
     Save file to parquet
     """
-    logging.info(f"Writing {filename} to {path}")
     return (
         df_.to_parquet(
             os.path.join(
@@ -33,67 +39,47 @@ def save_to_parquet(df_, path, filename):
         )
 
     )
-   
 
-def _get_orders_with_multiple_seller(items_path):
-    """
-    Return a dataframe with the orders that contains multiple sellers
-    """
-    return  (
-                pd.read_csv(items_path)
-                .groupby("order_id", as_index=False)
-                .agg(
-                    n_seller = ('seller_id', 'nunique')
-                )
-                .query("n_seller > 1")
-            )
-
-
-def remove_order_with_multiple_seller(df_, orders_with_multiple_sellers):
-    """
-    Return the orders datasets without orders with multiple sellers
-    """      
-    logger.info("Removing orders with multiple sellers...")
-    return (
-        df_
-        .merge(orders_with_multiple_sellers, on='order_id', how='left', indicator=True)
-        .query("_merge == 'left_only'")
-        .drop(columns=['n_seller', '_merge'])
+def prep_orders_datasets(df: pd.DataFrame, dataset:str):
+    logging.info(f"Preparing {dataset}...")
+    (
+        df
+        .pipe(remove_order_with_multiple_seller, orders_with_multiple_seller)
+        .pipe(chunk_dataframe, dataset, dates, orders_with_dates)
     )
 
 
-def main(path, save_path):
-    """
-    Main function used to prep the csv files for the project pipeline. This implies:
-        - Remove orders with multiple sellers
-        - Split data into daily chunks
-        - Save data into parquet to the raw folder
-    """
-    list_of_files_to_modify = ["olist_orders_dataset.csv", "olist_order_payments_dataset.csv", "olist_order_items_dataset.csv", "olist_order_reviews_dataset.csv"]
-    df_orders_multiple_seller = _get_orders_with_multiple_seller(os.path.join(path, "olist_order_items_dataset.csv"))
-    for f in os.listdir(path):
-        logging.info(f"Preprocessing file {f}")
-        df = pd.read_csv(os.path.join(path,f))
-        if f in list_of_files_to_modify:
-            df = remove_order_with_multiple_seller(df, df_orders_multiple_seller)
-        save_to_parquet(df, save_path, f)
+def prep_non_orders_dataset(dataset:str):
+    logging.info(f"Preparing {dataset}...")
+    (
+        pd.read_csv(DataRoot.return_dataset_path(dataset))
+        .pipe(save_to_parquet, DataRoot.return_save_root(), dataset)
+    )
 
 
-def return_dates(df):
-    date_column = "order_purchase_timestamp"
-
-    if date_column not in df.columns:
-        raise Exception(f"{date_column} is not in columns")
-        
-    df.loc[:, "date"] = pd.to_datetime(date_column).dt.date
-    all_dates = df["date"].unique().tolist()
-    return all_dates
-
-    
-    
 
 if __name__ == "__main__":
-    path = "data\\kaggle"
-    save_path = "data\\raw"
     set_dir_to_parent()
-    main(path, save_path)
+    # print(os.getcwd())
+
+
+    # load required data for prep in csv
+    items = pd.read_csv(DataRoot.return_items_path())
+    orders = pd.read_csv(DataRoot.return_orders_path())
+    payments = pd.read_csv(DataRoot.return_payments_path())
+
+
+    # prep - prep
+    orders_with_multiple_seller = get_orders_with_multiple_seller(items)
+    dates, orders_with_dates = filter_days_without_items_and_payments(orders, items, payments)
+
+    # process already loaded datasets
+    for df, dataset in zip([items, orders, payments], DataRoot.return_datasets_to_chunk()):
+        prep_orders_datasets(df, dataset)
+
+    # process rest
+    others_datasets = [x for x in os.listdir(DataRoot.return_root()) if x not in DataRoot.return_datasets_to_chunk()]
+    for dataset in others_datasets:
+        prep_non_orders_dataset(dataset)
+
+
