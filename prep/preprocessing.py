@@ -19,6 +19,9 @@ def set_dir_to_parent():
 
 
 def save_to_parquet(df_, path, filename):
+    """
+    Save file to parquet
+    """
     logging.info(f"Writing {filename} to {path}")
     return (
         df_.to_parquet(
@@ -76,6 +79,18 @@ def main(path, save_path):
         save_to_parquet(df, save_path, f)
 
 
+def return_dates(df):
+    date_column = "order_purchase_timestamp"
+
+    if date_column not in df.columns:
+        raise Exception(f"{date_column} is not in columns")
+        
+    df.loc[:, "date"] = pd.to_datetime(date_column).dt.date
+    all_dates = df["date"].unique().tolist()
+    return all_dates
+
+    
+    
 
 if __name__ == "__main__":
     path = "data\\kaggle"

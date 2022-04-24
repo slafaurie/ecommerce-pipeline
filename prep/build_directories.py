@@ -33,7 +33,7 @@ def create_root(ROOT):
         logger.info("Root found. Checking folders existence. Create new ones if are not present")
 
 
-def create_folders(ROOT, folders):
+def create_zone_folders(ROOT, folders):
     """
     Create all folders within root if not present.
     """
@@ -51,7 +51,7 @@ def create_data_folder(ROOT, folders):
     Create complete tree folder
     """
     create_root(ROOT)
-    create_folders(ROOT, folders)
+    create_zone_folders(ROOT, folders)
 
 
 def delete_data_folder(ROOT):
@@ -71,7 +71,7 @@ if __name__ == "__main__":
     folders = ["kaggle", "raw", "transient", "staging", "curated"]
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--reset", type=bool)
+    parser.add_argument("--reset", type=str)
     args = parser.parse_args()
 
     set_dir_to_parent()
