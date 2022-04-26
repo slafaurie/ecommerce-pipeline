@@ -19,9 +19,13 @@ class DataModel:
     _bucket = _s3.Bucket("slafaurie-airflow")
     _prefix = "olist/one-run"
     _logger = logging.getLogger(__name__)
-    local = True
-    _local_path = 'C:\\Users\\chanl\\Documents\\cursos\\udemy\\airflow-hands-on-guide\\portfolio\\data'
+    # TODO -> how to go multiple parent folder
+    _local_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))), "data") 
 
+    @classmethod
+    def set_mode(cls, local: bool = True):
+        cls.local = local
+        cls.work_dir = cls._local_path if cls.local else cls._prefix
 
     @classmethod
     def print_mode(cls):
@@ -31,19 +35,23 @@ class DataModel:
             cls._logger.info(f"Data model is set to cloud. All files will be store in {cls._bucket}/{cls._prefix}")
 
     @classmethod
-    def read_parquet_to_dataframe(cls, zone: str, dataset: str):
+    def return_zone_path(cls, zone: str):
+        return os.path.join(cls.work_dir, zone)
+
+    @classmethod
+    def read_dataframe(cls, zone: str, dataset: str):
         """
         Read a parquet file stored in S3 and return a dataframe
         """
         cls._logger.info(f"Reading file {dataset} in {zone} zone")
         if cls.local:
-            path = os.path.join(cls._local_path, zone, dataset)
+            path = os.path.join(cls.work_dir, zone, dataset)
             if not os.path.exists(path):
                 raise Exception(f"{path} is not found")
             df = pd.read_parquet(path)
 
         else:
-            key = f"{cls._prefix}/{zone}/{dataset}"
+            key = f"{cls.work_dir}/{zone}/{dataset}"
             obj = cls._bucket.Object(key=key).get().get('Body').read()
             if not obj:
                 raise Exception(f"{key} does not exist")
@@ -51,9 +59,8 @@ class DataModel:
             df = pd.read_parquet(data)
         return df
         
-
     @classmethod
-    def write_df_to_s3_as_parquet(cls, df: pd.DataFrame, zone: str, dataset: str):
+    def write_df(cls, df: pd.DataFrame, zone: str, dataset: str):
         """
         Write a pandas DF as parquet
         """ 
@@ -61,11 +68,11 @@ class DataModel:
         cls._logger.info(f"Writing file {dataset} in {zone} zone")
 
         if cls.local:
-            path = os.path.join(cls._local_path, zone, dataset)
+            path = os.path.join(cls.work_dir, zone, dataset)
             df.to_parquet(path, index=False)
 
         else:
-            key = f"{cls._prefix}/{zone}/{dataset}"
+            key = f"{cls.work_dir}/{zone}/{dataset}"
             out_buffer =  BytesIO()
             df.to_parquet(out_buffer, index=False)
             cls._bucket.put_object(Body=out_buffer.getvalue(), Key=key)

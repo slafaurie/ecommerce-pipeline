@@ -9,35 +9,6 @@ class BaseTransformer:
     _logger = logging.getLogger(__name__)
 
 
-    def _get_orders_with_multiple_seller(items):
-        """
-        Return a dataframe with the orders that contains multiple sellers
-        """
-        return  (
-                    items
-                    .groupby("order_id", as_index=False)
-                    .agg(
-                        n_seller = ('seller_id', 'nunique')
-                    )
-                    .query("n_seller > 1")
-                )
-
-    @classmethod
-    def _remove_order_with_multiple_seller(cls, orders, items):
-        """
-        Return the orders datasets without orders with multiple sellers
-        """  
-        orders_with_multiple_sellers = cls._get_orders_with_multiple_seller(items)
-
-        return (
-                orders
-                .merge(orders_with_multiple_sellers, on='order_id', how='left', indicator=True)
-                .query("_merge == 'left_only'")
-                .drop(columns=['n_seller', '_merge'])
-            )
-
-
-
 class PaymentTransformer(BaseTransformer):
     def _select_payment_cols(df_):
         """
@@ -147,7 +118,6 @@ class ItemTransformer(BaseTransformer):
         return (
            
                 items
-                .pipe(cls._remove_order_with_multiple_seller, items)
                 .pipe(cls._aggregate_items_data)
                 .pipe(cls._add_gross_order_value)
         )
@@ -178,57 +148,6 @@ class OrderLeanTransformer(BaseTransformer):
             .rename(columns={"_merge":f"_merge_{other_name}"})
         )
 
-    def _fill_null_payments(df_):
-        """
-        For those columns with status delivered but no payment do the following:
-            - set payment method as voucher
-            - set the total value of the payment equal to the gross order value
-            - set voucher payment equal to the gross order value
-            - set number of payment in voucher equal to 1
-            - Fill all other payment columns to 0
-            - add a column indicating that the payment record is made up
-        """
-        
-        mask = (df_._merge_payments == "left_only") & (df_.order_status == "delivered")
-        fill_dict = {
-            "main_payment_type": [mask, "voucher", df_.main_payment_type],
-            "payment_total_sum": [mask, df_.gross_order_value, df_.payment_total_sum],
-            "payment_total_voucher": [mask, df_.gross_order_value, df_.payment_total_voucher],
-            "number_of_payments_voucher": [mask, 1, df_.number_of_payments_voucher],
-            "is_payment_madeup": [mask, True, False]
-        }
-
-        for col, args in fill_dict.items():
-            df_.loc[:,col] = np.where(*args)
-
-
-        # Fill all other payment_total_* and number_of_payment with 0
-        columns_to_fill = (
-                    df_
-                    .filter(like="payment")
-                    .drop(columns=["main_payment_type", "_merge_payments", "is_payment_madeup"])
-                    .columns
-                    .tolist()
-                    )
-
-        df_ = pd.concat(
-                            [
-                                df_.drop(columns=columns_to_fill)
-                                , df_[columns_to_fill].fillna(0)
-                            ]
-                            , axis=1
-                        )
-        return df_
-
-    def _change_status_orders_without_items(df_):
-        """
-        For those orders with no items and a status different to delivered set the status to cancelled
-        """
-
-        mask = (df_._merge_items == "left_only") & (df_.order_status != "delivered")
-        df_.loc[:,"order_status"] = np.where(mask, "cancelled", df_.order_status)
-        return df_
-
 
     def _add_residual_to_orders(df_, atol=0.01):
         """
@@ -253,7 +172,7 @@ class OrderLeanTransformer(BaseTransformer):
                 )
 
     def _final_clean_up(df_):
-        #
+        # TODO -> Add docs string
         FINAL_COLUMNS = {
             "order_id": "object"
             , "seller_id" : "object"
@@ -289,7 +208,6 @@ class OrderLeanTransformer(BaseTransformer):
             , "seller_city": "object"
             , "seller_state" : "object"
             , "residual" : "float64"
-            , "is_payment_madeup" : "bool"
         }
 
         df_ = df_[FINAL_COLUMNS.keys()].astype(FINAL_COLUMNS)
@@ -317,12 +235,9 @@ class OrderLeanTransformer(BaseTransformer):
         cls._logger.info("Preparing orders dataset...")
         return (
             orders
-            .pipe(cls._remove_order_with_multiple_seller, items)
             .pipe(cls._change_order_statuses)
             .pipe(cls._join_orders_staging_with_other, payments_stg, "payments")
             .pipe(cls._join_orders_staging_with_other, items_stg, "items")
-            .pipe(cls._fill_null_payments)
-            .pipe(cls._change_status_orders_without_items)
             .pipe(cls._add_residual_to_orders)
             .pipe(cls._join_orders_with_seller_and_customer, customer, seller)
             .pipe(cls._final_clean_up)
