@@ -17,15 +17,6 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-# def set_dir_to_parent():
-#     """
-#     Set the working directory the root of the project.
-    
-#     """
-#     currentdir = os.path.dirname(os.path.realpath(__file__))
-#     parentdir = os.path.dirname(os.path.dirname(currentdir))
-#     os.chdir(parentdir)
-
 
 def save_to_parquet(df_, filename):
     """

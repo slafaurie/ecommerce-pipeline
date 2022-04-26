@@ -16,14 +16,6 @@ logger = logging.getLogger(__name__)
 
 
 # functions
-def set_dir_to_parent():
-    """
-    Set the working directory the root of the project.
-    """
-    parentdir = os.path.dirname(DataModel.work_dir)
-    os.chdir(parentdir)
-
-
 def create_root(ROOT):
     """
     Create root folder if not exists already.
@@ -78,8 +70,7 @@ if __name__ == "__main__":
     parser.add_argument("--reset", type=str)
     args = parser.parse_args()
 
-    set_dir_to_parent()
-    # print(os.getcwd())
+    DataModel.set_dir_to_parent()
 
     if args.reset:
         delete_data_folder(ROOT)

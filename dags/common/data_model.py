@@ -35,6 +35,14 @@ class DataModel:
             cls._logger.info(f"Data model is set to cloud. All files will be store in {cls._bucket}/{cls._prefix}")
 
     @classmethod
+    def set_dir_to_parent():
+        """
+        Set the working directory the root of the project.
+        """
+        parentdir = os.path.dirname(DataModel.work_dir)
+        os.chdir(parentdir)
+
+    @classmethod
     def return_zone_path(cls, zone: str):
         return os.path.join(cls.work_dir, zone)
 
