@@ -158,8 +158,7 @@ class OrderLeanTransformer(BaseTransformer):
             df_
             .assign(
                 residual_stg = df_.gross_order_value - df_.payment_total_sum,
-                residual = lambda df: np.where(np.abs(df.residual_stg <= atol), 0, df.residual_stg),
-                order_created_date = lambda df: pd.to_datetime(df.order_purchase_timestamp).dt.date
+                residual = lambda df: np.where(np.abs(df.residual_stg <= atol), 0, df.residual_stg)
                 )
             .drop(columns=["residual_stg"])
         )
@@ -173,12 +172,13 @@ class OrderLeanTransformer(BaseTransformer):
 
     def _final_clean_up(df_):
         # TODO -> Add docs string
+        # print(df_.columns)
         FINAL_COLUMNS = {
             "order_id": "object"
             , "seller_id" : "object"
             , "customer_unique_id" : "object"
             , "order_status": "object"
-            , "order_created_date": "object"
+            , "purchase_date": "object"
             , "order_purchase_timestamp" : "object"
             , "order_approved_at": "object"
             , "order_delivered_carrier_date" : "object"
@@ -214,7 +214,6 @@ class OrderLeanTransformer(BaseTransformer):
 
         #
         datetime_cols = [
-            "order_created_date",
             "order_purchase_timestamp", 
             "order_approved_at", 
             "order_delivered_carrier_date",
@@ -233,6 +232,7 @@ class OrderLeanTransformer(BaseTransformer):
         items_stg = ItemTransformer.transform_items(items)
 
         cls._logger.info("Preparing orders dataset...")
+        # print(orders.columns)
         return (
             orders
             .pipe(cls._change_order_statuses)

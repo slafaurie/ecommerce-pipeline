@@ -31,12 +31,11 @@ class DataModel:
         cls.local = local
         cls.work_dir = cls._local_path if cls.local else cls._prefix
 
-    @classmethod
-    def print_mode(cls):
-        if cls.local:
+        if cls.local == True:
             cls._logger.info(f"Data model is set to local. All files will be stored in {cls._local_path}")
         else:
             cls._logger.info(f"Data model is set to cloud. All files will be store in {cls._bucket}/{cls._prefix}")
+
 
     @classmethod
     def set_dir_to_parent():
@@ -91,7 +90,7 @@ class DataModel:
 
 
     def _compare_filename_to_partition(x, partition_date):
-       return x.split("_")[-1].split(".")[0] <= partition_date
+       return x.split("_")[-1].split(".")[0] >= partition_date
 
 
     @classmethod
