@@ -8,7 +8,6 @@ from common.utils import row_number, lead_window, days_diff, month_diff
 class OrderRankingTransformer:
     _logger = logging.getLogger(__name__)
 
-
     def _add_ranking_columns(df_):
         df_ = df_.copy()
         customer_col = "customer_unique_id"

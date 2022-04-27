@@ -6,7 +6,6 @@ import argparse
 from prep.prep_utils.constants import FilePath, Folders
 from common.data_model import DataModel
 
-
 # logger
 logging.basicConfig(
     level= logging.INFO,
@@ -32,7 +31,7 @@ def create_zone_folders(ROOT, folders):
     Create all folders within root if not present.
     """
     for f in folders:
-        new_folder = f"{ROOT}\\{f}"
+        new_folder = os.path.join(ROOT,f)
         if not os.path.exists(new_folder):
             logger.info(f"Creating folder {f}...")
             os.makedirs(new_folder)
