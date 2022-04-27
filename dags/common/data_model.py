@@ -6,8 +6,6 @@ import pandas as pd
 
 import logging
 
-
-
 class DataModel:
 
     """
@@ -20,7 +18,13 @@ class DataModel:
     _prefix = "olist/one-run"
     _logger = logging.getLogger(__name__)
     # TODO -> how to go multiple parent folder
-    _local_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))), "data") 
+    _local_path = os.path.join(
+        os.path.dirname(
+            os.path.dirname( 
+                os.path.realpath(__file__)
+                )
+            )
+        , "data") 
 
     @classmethod
     def set_mode(cls, local: bool = True):
@@ -84,5 +88,62 @@ class DataModel:
             out_buffer =  BytesIO()
             df.to_parquet(out_buffer, index=False)
             cls._bucket.put_object(Body=out_buffer.getvalue(), Key=key)
+
+
+    def _compare_filename_to_partition(x, partition_date):
+       return x.split("_")[-1].split(".")[0] <= partition_date
+
+
+    @classmethod
+    def read_partitioned_dataframe(cls, zone: str, dataset: str, partition_date: str):
+        """
+        Read a parquet file stored in S3 and return a dataframe
+        """
+        cls._logger.info(f"Reading file {dataset} in {zone} zone")
+        if not cls.local:
+            raise Exception("Method not implemented yet")
+    
+        path = os.path.join(cls.work_dir, zone, dataset)
+
+        if not os.path.exists(path):
+            raise Exception(f"{path} is not found")
+
+        files = [x for x in os.listdir(path) if cls._compare_filename_to_partition(x, partition_date)]
+        df = pd.concat([pd.read_parquet(os.path.join(path, file)) for file in files], ignore_index=True)
+        return df
+
+
+    @classmethod
+    def write_partitioned_dataframe(cls, df: pd.DataFrame, zone: str, dataset: str, partition_column: str):
+        """
+        Read a parquet file stored in S3 and return a dataframe
+        """
+
+        cls._logger.info(f"Writing file {dataset} in {zone} zone")
+        if not cls.local:
+            raise Exception("Method not implemented yet")
+
+        if partition_column not in df.columns:
+            raise Exception("Partition is not in columns")
+
+        path = os.path.join(cls.work_dir, zone, dataset)
+
+        if not os.path.exists(path):
+            os.makedirs(path)
+
+        dates = df[partition_column].sort_values().unique().tolist()
+
+        df_list = (df[df[partition_column] == d] for d in dates)
+
+        # save each chunk file within dataset folder
+        for i, df_ in enumerate(df_list):
+
+            if len(df_[partition_column]) == 0:
+                print(dates[i])
+                raise Exception("No rows for date")
+
+            date_str = df_[partition_column].iloc[0].strftime("%Y-%m-%d")
+            filename = dataset + "_"  + date_str + ".parquet"
+            df_.to_parquet(os.path.join(path, filename))
 
     
