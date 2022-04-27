@@ -4,7 +4,7 @@ from common.data_model import DataModel
 from curated.orders.models.transformer import OrdersTransformer
 
 
-def run():
+def run(partition_date):
 
     # Args
     ZONE = "transient"
@@ -18,9 +18,9 @@ def run():
     logger.info("Start loading process...")
 
     # load
-    DataModel.print_mode()
-    orders_lean = DataModel.read_parquet_to_dataframe(zone=ZONE, dataset="orders_lean.parquet")
-    orders_ranking = DataModel.read_parquet_to_dataframe(zone=ZONE, dataset="orders_ranking.parquet")
+    DataModel.set_mode(local=True)
+    orders_lean = DataModel.read_partitioned_dataframe(zone=ZONE, dataset="orders_lean", partition_date=partition_date)
+    orders_ranking = DataModel.read_dataframe(zone=ZONE, dataset="orders_ranking.parquet")
   
 
     # transform
@@ -28,7 +28,7 @@ def run():
     orders = OrdersTransformer.curate_orders(orders_lean, orders_ranking)
 
     # save
-    DataModel.write_df_to_s3_as_parquet(orders, zone="curated", dataset="orders.parquet")
+    DataModel.write_partitioned_dataframe(orders, zone="curated", dataset="orders.parquet", partition_column="purchase_date")
     logger.info("Curation done")
 
 
