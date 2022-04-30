@@ -56,24 +56,27 @@ def delete_data_folder(ROOT):
         return 
     logger.info("Deleting ROOT and contents...")
     shutil.rmtree(ROOT)
-       
 
-if __name__ == "__main__":
 
+def build_directories():
     DataModel.set_mode(True)
    
     ROOT = FilePath.ROOT
     folders = Folders.folders
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--reset", type=str)
-    args = parser.parse_args()
+    # parser = argparse.ArgumentParser()
+    # parser.add_argument("--reset", type=str)
+    # args = parser.parse_args()
 
     DataModel.set_dir_to_parent()
 
-    if args.reset:
-        delete_data_folder(ROOT)
+    # if args.reset:
+    delete_data_folder(ROOT)
     create_data_folder(ROOT, folders)
+
+
+# if __name__ == "__main__":
+
 
 
 

@@ -1,5 +1,5 @@
 import os
-from io import BytesIO
+from io import BytesIO, StringIO
 
 import boto3
 import pandas as pd
@@ -38,11 +38,11 @@ class DataModel:
 
 
     @classmethod
-    def set_dir_to_parent():
+    def set_dir_to_parent(cls):
         """
         Set the working directory the root of the project.
         """
-        parentdir = os.path.dirname(DataModel.work_dir)
+        parentdir = os.path.dirname(cls.work_dir)
         os.chdir(parentdir)
 
     @classmethod
@@ -50,11 +50,23 @@ class DataModel:
         return os.path.join(cls.work_dir, zone)
 
     @classmethod
+    def read_csv_from_s3(cls, zone:str, dataset:str):
+        key = f"{cls._prefix}/{zone}/{dataset}"
+        obj = cls._bucket.Object(key=key).get().get('Body').read().decode("utf-8")
+        if not obj:
+            raise Exception(f"{key} does not exist")
+        data = StringIO(obj)
+        df = pd.read_csv(data)
+        return df
+
+
+    @classmethod
     def read_dataframe(cls, zone: str, dataset: str):
         """
         Read a parquet file stored in S3 and return a dataframe
         """
         cls._logger.info(f"Reading file {dataset} in {zone} zone")
+
         if cls.local:
             path = os.path.join(cls.work_dir, zone, dataset)
             if not os.path.exists(path):

@@ -8,6 +8,7 @@ from prep.prep_utils.constants import FilePath
 from prep.prep_utils.preprocess import get_orders_with_multiple_seller, remove_order_with_multiple_seller
 from prep.prep_utils.chunk_data import chunk_dataframe, filter_days_without_items_and_payments
 
+from typing import List
 
 # logger
 logging.basicConfig(
@@ -26,7 +27,7 @@ def save_to_parquet(df_, filename):
     DataModel.write_df(df_, FilePath.SAVE_ZONE, filename.split(".")[0] + ".parquet")
 
    
-def prep_orders_datasets(df: pd.DataFrame, dataset:str):
+def prep_orders_datasets(df: pd.DataFrame, dataset:str, orders_with_multiple_seller:pd.DataFrame, dates: List[str], orders_with_dates):
     logging.info(f"Preparing {dataset}...")
     (
         df
@@ -38,23 +39,18 @@ def prep_orders_datasets(df: pd.DataFrame, dataset:str):
 def prep_non_orders_dataset(dataset:str):
     logging.info(f"Preparing {dataset}...")
     (
-        pd.read_csv(os.path.join(DataModel.return_zone_path(FilePath.ZONE), dataset))
+        DataModel.read_csv_from_s3(FilePath.ZONE, dataset)
         .pipe(save_to_parquet, dataset)
     )
 
 
-
-if __name__ == "__main__":
-    # set_dir_to_parent()
-    # print(os.getcwd())
-
+def prep_olist_files():
     DataModel.set_mode(local=True)
 
-
-    # load required data for prep in csv
-    items = pd.read_csv(os.path.join(DataModel.return_zone_path(FilePath.ZONE), FilePath.ITEMS))
-    orders = pd.read_csv(os.path.join(DataModel.return_zone_path(FilePath.ZONE), FilePath.ORDERS))
-    payments = pd.read_csv(os.path.join(DataModel.return_zone_path(FilePath.ZONE), FilePath.PAYMENTS))
+    # load required data for prep in cs
+    items = DataModel.read_csv_from_s3(FilePath.ZONE, FilePath.ITEMS)
+    orders = DataModel.read_csv_from_s3(FilePath.ZONE, FilePath.ORDERS)
+    payments = DataModel.read_csv_from_s3(FilePath.ZONE, FilePath.PAYMENTS)
 
 
     # prep - prep
@@ -63,11 +59,17 @@ if __name__ == "__main__":
 
     # process already loaded datasets
     for df, dataset in zip([items, orders, payments], FilePath.return_datasets_to_chunk()):
-        prep_orders_datasets(df, dataset)
+        prep_orders_datasets(df, dataset, orders_with_multiple_seller, dates, orders_with_dates)
 
     # process rest
-    others_datasets = [x for x in os.listdir(DataModel.return_zone_path(FilePath.ZONE)) if x not in FilePath.return_datasets_to_chunk()]
-    for dataset in others_datasets:
+
+    for dataset in FilePath.return_other_datasets():
         prep_non_orders_dataset(dataset)
+
+# if __name__ == "__main__":
+    # set_dir_to_parent()
+    # print(os.getcwd())
+
+
 
 
