@@ -16,6 +16,9 @@ class FilePath:
     ORDERS = "olist_orders_dataset.csv"
     ITEMS =  "olist_order_items_dataset.csv"
     PAYMENTS =   "olist_order_payments_dataset.csv"
+    CUSTOMERS = "olist_customers_dataset.csv"
+    PRODUCTS = "olist_products_dataset.csv"
+    SELLERS = "olist_sellers_dataset.csv"
     
 
     # @classmethod
@@ -25,6 +28,10 @@ class FilePath:
     @classmethod
     def return_datasets_to_chunk(cls):
         return [cls.ITEMS, cls.ORDERS, cls.PAYMENTS]
+
+    @classmethod
+    def return_other_datasets(cls):
+        return [cls.CUSTOMERS, cls.PRODUCTS, cls.SELLERS]
 
     # @classmethod
     # def return_dataset_path(cls, dataset):

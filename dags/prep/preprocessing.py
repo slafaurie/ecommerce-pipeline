@@ -39,18 +39,18 @@ def prep_orders_datasets(df: pd.DataFrame, dataset:str, orders_with_multiple_sel
 def prep_non_orders_dataset(dataset:str):
     logging.info(f"Preparing {dataset}...")
     (
-        pd.read_csv(os.path.join(DataModel.return_zone_path(FilePath.ZONE), dataset))
+        DataModel.read_csv_from_s3(FilePath.ZONE, dataset)
         .pipe(save_to_parquet, dataset)
     )
 
 
 def prep_olist_files():
-    DataModel.set_mode(local=False)
+    DataModel.set_mode(local=True)
 
     # load required data for prep in cs
-    items = pd.read_csv(os.path.join(DataModel.return_zone_path(FilePath.ZONE), FilePath.ITEMS))
-    orders = pd.read_csv(os.path.join(DataModel.return_zone_path(FilePath.ZONE), FilePath.ORDERS))
-    payments = pd.read_csv(os.path.join(DataModel.return_zone_path(FilePath.ZONE), FilePath.PAYMENTS))
+    items = DataModel.read_csv_from_s3(FilePath.ZONE, FilePath.ITEMS)
+    orders = DataModel.read_csv_from_s3(FilePath.ZONE, FilePath.ORDERS)
+    payments = DataModel.read_csv_from_s3(FilePath.ZONE, FilePath.PAYMENTS)
 
 
     # prep - prep
@@ -62,8 +62,8 @@ def prep_olist_files():
         prep_orders_datasets(df, dataset, orders_with_multiple_seller, dates, orders_with_dates)
 
     # process rest
-    others_datasets = [x for x in os.listdir(DataModel.return_zone_path(FilePath.ZONE)) if x not in FilePath.return_datasets_to_chunk()]
-    for dataset in others_datasets:
+
+    for dataset in FilePath.return_other_datasets():
         prep_non_orders_dataset(dataset)
 
 # if __name__ == "__main__":
