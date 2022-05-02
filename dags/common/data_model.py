@@ -6,6 +6,8 @@ import pandas as pd
 
 import logging
 
+from typing import List
+
 class DataModel:
 
     """
@@ -101,16 +103,14 @@ class DataModel:
             cls._bucket.put_object(Body=out_buffer.getvalue(), Key=key)
 
 
-    def _compare_filename_to_partition(x, partition_date, direction="gt"):
-        if direction == "gt":
-            return x.split("_")[-1].split(".")[0] > partition_date
-        else:
-            return x.split("_")[-1].split(".")[0] < partition_date
+    def _compare_filename_to_partition(x, partition_dates):
+        date = x.split("_")[-1].split(".")[0]
+        return ( date >= partition_dates[0]) &  ( date < partition_dates[1]) 
 
 
 
     @classmethod
-    def read_partitioned_dataframe(cls, zone: str, dataset: str, partition_date: str, direction="gt"):
+    def read_partitioned_dataframe(cls, zone: str, dataset: str, partition_dates: List[str]):
         """
         Read a parquet file stored in S3 and return a dataframe
         """
@@ -123,7 +123,7 @@ class DataModel:
         if not os.path.exists(path):
             raise Exception(f"{path} is not found")
 
-        files = [x for x in os.listdir(path) if cls._compare_filename_to_partition(x, partition_date, direction)]
+        files = [x for x in os.listdir(path) if cls._compare_filename_to_partition(x, partition_dates)]
         df = pd.concat([pd.read_parquet(os.path.join(path, file)) for file in files], ignore_index=True)
         return df
 
