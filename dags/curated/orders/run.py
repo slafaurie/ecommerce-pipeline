@@ -4,7 +4,7 @@ from common.data_model import DataModel
 from curated.orders.models.transformer import OrdersTransformer
 
 
-def run(partition_date):
+def run_orders(partition_date):
 
     # Args
     ZONE = "transient"
@@ -32,5 +32,5 @@ def run(partition_date):
     logger.info("Curation done")
 
 
-if __name__ == "__main__":
-    run()
+# if __name__ == "__main__":
+    # run()

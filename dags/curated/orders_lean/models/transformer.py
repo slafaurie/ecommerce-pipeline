@@ -210,7 +210,11 @@ class OrderLeanTransformer(BaseTransformer):
             , "residual" : "float64"
         }
 
-        df_ = df_[FINAL_COLUMNS.keys()].astype(FINAL_COLUMNS)
+        # Create null columns to preserve schema
+        for col in FINAL_COLUMNS.keys():
+            if col not in df_.columns:
+                df_.loc[:, col] = None
+        df_ = df_.astype(FINAL_COLUMNS)
 
         #
         datetime_cols = [
