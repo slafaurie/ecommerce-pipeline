@@ -85,7 +85,7 @@ class OrderRankingTransformer:
             , "customer_unique_id"
             , "order_status"
             , "order_purchase_timestamp"
-            , "order_created_date"
+            , "purchase_date"
         ]
 
         return df_[columns_to_use]
