@@ -2,9 +2,13 @@ import logging
 
 from common.data_model import DataModel
 from curated.orders_ranking.models.transformer import OrderRankingTransformer
+# from airflow.macros import ds_add
 
 
-def order_ranking_run(partition_date):
+
+def run_order_ranking(start_date, end_date):
+
+    partition_dates = [start_date, end_date]
 
     # Args
     ZONE = "transient"
@@ -15,11 +19,11 @@ def order_ranking_run(partition_date):
     )
 
     logger = logging.getLogger(__name__)
-    logger.info("Start loading process...")
+    logger.info(f"Start loading process with dates equal to {partition_dates}")
 
     # load
     DataModel.set_mode(local=True)
-    orders = DataModel.read_partitioned_dataframe(zone=ZONE, dataset="olist_orders_dataset", partition_date = partition_date, direction="lt")
+    orders = DataModel.read_partitioned_dataframe(zone=ZONE, dataset="orders_lean", partition_dates = partition_dates)
   
 
     # transform

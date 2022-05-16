@@ -124,6 +124,8 @@ class DataModel:
             raise Exception(f"{path} is not found")
 
         files = [x for x in os.listdir(path) if cls._compare_filename_to_partition(x, partition_dates)]
+        if len(files) == 0:
+            return None
         df = pd.concat([pd.read_parquet(os.path.join(path, file)) for file in files], ignore_index=True)
         return df
 
