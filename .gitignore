@@ -11,3 +11,6 @@ __pycache__/
 *.csv
 *.zip
 **/data
+
+#dockerfile
+airflow-env/docker-compose.yml
