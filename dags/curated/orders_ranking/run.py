@@ -31,7 +31,10 @@ def run_order_ranking(start_date, end_date):
     order_ranking = OrderRankingTransformer.curate_order_rankings(orders)
 
     # save
-    DataModel.write_df(order_ranking, zone="transient", dataset="orders_ranking.parquet")
+    DataModel.write_partitioned_dataframe(order_ranking, zone="transient", dataset="orders_ranking", partition_column="purchase_date")
+    # DataModel.write_df(order_ranking, zone="transient", dataset="orders_ranking.parquet")
+
+    
     logger.info("Curation done")
 
 

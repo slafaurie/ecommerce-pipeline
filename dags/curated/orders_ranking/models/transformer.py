@@ -102,7 +102,8 @@ class OrderRankingTransformer:
             "order_ranking_delivered": "Int64",
             "order_at_seller_ranking_delivered": "Int64",
             "days_from_last_order":"Int64",
-            "month_from_last_order":"Int64"
+            "month_from_last_order":"Int64",
+            "purchase_date":"object"
         }
 
         df_ = df_[columns_to_persist.keys()].astype(columns_to_persist)

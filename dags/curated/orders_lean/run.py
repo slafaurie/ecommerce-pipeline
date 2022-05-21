@@ -5,14 +5,9 @@ import logging
 
 from common.data_model import DataModel
 from curated.orders_lean.models.transformer import OrderLeanTransformer
-from airflow.macros import ds_add
 
 
-def run_orders_lean(ds_date):
-
-
-    partition_dates = [ds_add(ds_date, -7), ds_date]
-
+def run_orders_lean(partition_dates):
 
     # Args
     ZONE = "raw"
