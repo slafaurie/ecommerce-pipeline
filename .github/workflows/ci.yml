@@ -8,7 +8,7 @@ jobs:
       - name: Build the stack
         run: docker-compose up -d -f ./airflow-env/docker-compose.yml
       - name: Test
-        run: echo "Stack build without problems"
+        run: echo "Stack built without problems"
       - name: Stop containers
         if: always()
-        run: docker-compose -f "docker-compose.yml" down
+        run: docker-compose -f "./airflow-env/docker-compose.yml" down
