@@ -9,6 +9,8 @@ jobs:
         run: docker-compose -f ./airflow-env/docker-compose.yml up -d
       - name: Check docker images
         run: docker ps
+      - name: check folder
+        run: docker exec airflow ls
       - name: Run pytest
         run: docker exec airflow pytest tests
       - name: Stop containers
