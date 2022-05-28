@@ -9,3 +9,6 @@ jobs:
         run: docker-compose up -d -f ./airflow-env/docker-compose.yml
       - name: Test
         run: echo "Stack build without problems"
+      - name: Stop containers
+        if: always()
+        run: docker-compose -f "docker-compose.yml" down
