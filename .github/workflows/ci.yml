@@ -10,11 +10,7 @@ jobs:
       - name: Check docker images
         run: docker ps
       - name: check folder
-        run: docker exec airflow ls
-      - name: check pytest
-        run: docker exec airflow python -m pip freeze | grep "pytest"
-      - name: Run pytest
-        run: docker exec airflow python -m pytest tests
+        run: docker exec airflow bash tests/test.sh
       - name: Stop containers
         if: always()
         run: docker-compose -f ./airflow-env/docker-compose.yml down
