@@ -12,9 +12,13 @@ This project goal is to build a data pipeline that takes production tables and o
 
 ## Next Improvements
 - Testing, I know. Will add it. 
+     DAG integrity (no dag import errors)
 - Store curated table into DWH (e.g BigQuery)
 - Datamart layer to support reporting. Will be exclusively done in SQL.
-- CI/CD integration
+- CI (Github Actions)
+    - Infra build
+    - Container spinning
+    - run tests
 - Terraform scripts to build the required infra.
 
 ## How to run

@@ -1,0 +1,11 @@
+name: airflow ci
+on: push
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build the stack
+        run: docker-compose up -d -f ./airflow-env/docker-compose.yml
+      - name: Test
+        run: echo "Stack build without problems"
