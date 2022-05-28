@@ -1,11 +1,12 @@
 services:
   airflow:
-    image: airflow-env
+    image: slafaurie/airflow-env
     restart: always
     container_name: airflow
     volumes:
       # - ./dags/airflow/airflow.cfg:/opt/airflow/airflow.cfg
       - ./../dags:/opt/airflow/dags
+      - ./../tests:/opt/airflow/tests
     ports:
       - 8080:8080
     healthcheck:

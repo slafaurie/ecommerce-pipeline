@@ -1,0 +1,16 @@
+name: airflow ci
+on: push
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build the stack
+        run: docker-compose -f ./airflow-env/docker-compose.yml up -d
+      - name: Check docker images
+        run: docker ps
+      - name: check folder
+        run: docker exec airflow bash tests/test.sh
+      - name: Stop containers
+        if: always()
+        run: docker-compose -f ./airflow-env/docker-compose.yml down

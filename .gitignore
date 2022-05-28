@@ -13,4 +13,9 @@ __pycache__/
 **/data
 
 #dockerfile
-airflow-env/docker-compose.yml
+airflow-env/docker-compose.override.yml
+
+
+## airflow bin
+.DS_Store
+dags/.DS_Store
