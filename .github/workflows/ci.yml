@@ -6,7 +6,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Build the stack
-        run: docker-compose up -d -f ./airflow-env/docker-compose.yml
+        run: docker-compose -d -f ./airflow-env/docker-compose.yml up
       - name: Check docker images
         run: docker ps
       - name: Run pytest
