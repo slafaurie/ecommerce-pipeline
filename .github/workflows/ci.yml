@@ -12,7 +12,7 @@ jobs:
       - name: check folder
         run: docker exec airflow ls
       - name: check pytest
-        run: docker exec airflow pip freeze | grep "pytest"
+        run: docker exec airflow python -m pip freeze | grep "pytest"
       - name: Run pytest
         run: docker exec airflow python -m pytest tests
       - name: Stop containers
