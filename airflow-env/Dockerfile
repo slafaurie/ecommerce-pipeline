@@ -39,10 +39,12 @@ RUN wget https://raw.githubusercontent.com/apache/airflow/constraints-2.0.2/cons
 # Upgrade pip
 # Create airflow user 
 # Install apache airflow with subpackages
-RUN pip install --upgrade pip && \
-    useradd -ms /bin/bash -d ${AIRFLOW_HOME} airflow && \
-    pip install apache-airflow[postgres,amazon]==${AIRFLOW_VERSION} --constraint /constraints-3.8.txt && \
-    pip install boto3 pyarrow
+RUN pip install --upgrade pip  \
+    && useradd -ms /bin/bash -d ${AIRFLOW_HOME} airflow  \
+    && pip install apache-airflow[postgres,amazon]==${AIRFLOW_VERSION} --constraint /constraints-3.8.txt  \
+    && pip install boto3 pyarrow
+
+RUN pip install pytest
 
 
 # Copy the entrypoint.sh from host to container (at path AIRFLOW_HOME)
