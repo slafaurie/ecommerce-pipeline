@@ -8,7 +8,7 @@ jobs:
       - name: Build the stack
         run: docker-compose up -d -f ./airflow-env/docker-compose.yml
       - name: Run pytest
-        run: pytest tests/
+        run: python -m pytest tests/
       - name: Stop containers
         if: always()
         run: docker-compose -f "./airflow-env/docker-compose.yml" down
