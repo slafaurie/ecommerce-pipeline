@@ -10,7 +10,7 @@ jobs:
       - name: Check docker images
         run: docker ps
       - name: Run pytest
-        run: docker-compose -f ./airflow-env/docker-compose.yml exec airflow pytest tests
+        run: docker exec airflow pytest tests
       - name: Stop containers
         if: always()
         run: docker-compose -f ./airflow-env/docker-compose.yml down
