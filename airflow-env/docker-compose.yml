@@ -1,6 +1,6 @@
 services:
   airflow:
-    image: slafaurie/airflow-env
+    image: slafaurie/airflow-dev-sequential-executor
     restart: always
     container_name: airflow
     volumes:

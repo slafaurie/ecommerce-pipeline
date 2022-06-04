@@ -4,7 +4,6 @@
 # dont load examples
 export AIRFLOW__CORE__LOAD_EXAMPLES=False
 
-
 # Initiliase the metastore
 airflow db init
 
