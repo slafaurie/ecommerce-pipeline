@@ -19,3 +19,17 @@ airflow-env/docker-compose.override.yml
 ## airflow bin
 .DS_Store
 dags/.DS_Store
+
+
+
+## terraform
+# Compiled files
+*.tfstate
+*.tfstate.backup
+*.tfstate.lock.info
+
+# logs
+*.log
+
+# Directories
+infra/.terraform/
