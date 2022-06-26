@@ -58,4 +58,4 @@ class FilePath:
 
 
 class Folders:
-    folders = ["kaggle", "raw", "transient", "staging", "curated"]
+    folders = ["kaggle", "raw", "transient", "curated"]

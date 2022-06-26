@@ -58,9 +58,7 @@ def delete_data_folder(ROOT):
     shutil.rmtree(ROOT)
 
 
-def build_directories():
-    DataModel.set_mode(True)
-   
+def build_directories():   
     ROOT = FilePath.ROOT
     folders = Folders.folders
 
@@ -69,9 +67,6 @@ def build_directories():
     # args = parser.parse_args()
 
     DataModel.set_dir_to_parent()
-
-    # if args.reset:
-    delete_data_folder(ROOT)
     create_data_folder(ROOT, folders)
 
 
