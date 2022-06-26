@@ -24,7 +24,7 @@ def save_to_parquet(df_, filename):
     Save file to parquet
     """
 
-    DataModel.write_df(df_, FilePath.SAVE_ZONE, filename.split(".")[0] + ".parquet")
+    DataModel.write_dataframe(df_, FilePath.SAVE_ZONE, filename.split(".")[0] + ".parquet")
 
    
 def prep_orders_datasets(df: pd.DataFrame, dataset:str, orders_with_multiple_seller:pd.DataFrame, dates: List[str], orders_with_dates):
@@ -39,18 +39,16 @@ def prep_orders_datasets(df: pd.DataFrame, dataset:str, orders_with_multiple_sel
 def prep_non_orders_dataset(dataset:str):
     logging.info(f"Preparing {dataset}...")
     (
-        DataModel.read_csv_from_s3(FilePath.ZONE, dataset)
+        DataModel.read_csv_as_dataframe(FilePath.ZONE, dataset)
         .pipe(save_to_parquet, dataset)
     )
 
 
 def prep_olist_files():
-    DataModel.set_mode(local=True)
-
     # load required data for prep in cs
-    items = DataModel.read_csv_from_s3(FilePath.ZONE, FilePath.ITEMS)
-    orders = DataModel.read_csv_from_s3(FilePath.ZONE, FilePath.ORDERS)
-    payments = DataModel.read_csv_from_s3(FilePath.ZONE, FilePath.PAYMENTS)
+    items = DataModel.read_csv_as_dataframe(FilePath.ZONE, FilePath.ITEMS)
+    orders = DataModel.read_csv_as_dataframe(FilePath.ZONE, FilePath.ORDERS)
+    payments = DataModel.read_csv_as_dataframe(FilePath.ZONE, FilePath.PAYMENTS)
 
 
     # prep - prep
