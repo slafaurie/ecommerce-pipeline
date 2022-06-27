@@ -1,8 +1,11 @@
 
 from airflow import DAG 
 from airflow.operators.python import PythonOperator
+from airflow.operators.bash import BashOperator
+from airflow.providers.postgres.operators.postgres import PostgresOperator
 
 from datetime import datetime
+
 
 from prep.build_directories import build_directories
 from prep.preprocessing import prep_olist_files
@@ -12,6 +15,13 @@ default_args = {
     "owner": "Airflow" 
 }
 
+init_query = "SELECT 'HELLO BITCHES'"
+
+def print_cwd():
+    import os
+    print(os.getcwd())
+
+
 with DAG(dag_id="prep", schedule_interval=None, default_args=default_args) as dag:
 
     build_directories_task = PythonOperator(
@@ -19,9 +29,26 @@ with DAG(dag_id="prep", schedule_interval=None, default_args=default_args) as da
         python_callable=build_directories
     )
 
+    make_file_executable = BashOperator(
+        task_id = "executable_script",
+        bash_command = "chmod +x /opt/airflow/dags/prep/scripts/add_postgres_connection.sh "
+    )
+
+    create_postgres_connection = BashOperator(
+        task_id = "created_connection",
+        bash_command = "/opt/airflow/dags/prep/scripts/add_postgres_connection.sh "
+    )
+
+    postgres_hello = PostgresOperator(
+        task_id = "prep-postgres",
+        postgres_conn_id = "postgres_ecommerce",
+        sql=init_query
+    )
+
     prep_olist_files_task = PythonOperator(
         task_id = "prep-olist-files",
         python_callable=prep_olist_files
     )
 
-    build_directories_task >> prep_olist_files_task
+    build_directories_task >>  make_file_executable >> create_postgres_connection >> postgres_hello >> prep_olist_files_task
+
