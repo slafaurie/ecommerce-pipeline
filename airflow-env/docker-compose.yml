@@ -4,17 +4,39 @@ services:
     restart: always
     container_name: airflow
     volumes:
-      # - ./dags/airflow/airflow.cfg:/opt/airflow/airflow.cfg
       - ./../dags:/opt/airflow/dags
       - ./../tests:/opt/airflow/tests
     ports:
-      - 8080:8080
+      - "8080:8080"
     healthcheck:
       test: [ "CMD", "nc", "-z", "airflow", "8080" ]
       timeout: 45s
       interval: 10s
       retries: 10
     environment:
-      - AWS_ACCESS_KEY_ID=""
-      - AWS_SECRET_ACCESS_KEY=""
       - PYTHONPATH=/opt/airflow/dags
+  
+  postgres:
+    image: postgres:13
+    container_name: postgres
+    environment:
+        - POSTGRES_USER=postgres
+        - POSTGRES_PASSWORD=postgres
+        - POSTGRES_DB=curated
+    ports:
+      - "5432:5432"
+    volumes:
+        - db:/var/lib/postgresql/data
+    restart: always
+
+  pdadmin:
+    image: dpage/pgadmin4
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@admin.com
+      - PGADMIN_DEFAULT_PASSWORD=root
+    ports:
+      - "8081:80"
+
+volumes:
+  db:
+
