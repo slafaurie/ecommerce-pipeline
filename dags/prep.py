@@ -24,19 +24,10 @@ def print_cwd():
 
 with DAG(dag_id="prep", schedule_interval=None, default_args=default_args) as dag:
 
-    build_directories_task = PythonOperator(
-        task_id = "build-directories",
-        python_callable=build_directories
-    )
 
-    make_file_executable = BashOperator(
-        task_id = "executable_script",
-        bash_command = "chmod +x /opt/airflow/dags/prep/scripts/add_postgres_connection.sh "
-    )
-
-    create_postgres_connection = BashOperator(
-        task_id = "created_connection",
-        bash_command = "/opt/airflow/dags/prep/scripts/add_postgres_connection.sh "
+    dag_prep = BashOperator(
+        task_id = "prep_dag_script",
+        bash_command = "/opt/airflow/dags/prep/scripts/entrypoint_dag_prep.sh "
     )
 
     postgres_hello = PostgresOperator(
@@ -50,5 +41,5 @@ with DAG(dag_id="prep", schedule_interval=None, default_args=default_args) as da
         python_callable=prep_olist_files
     )
 
-    build_directories_task >>  make_file_executable >> create_postgres_connection >> postgres_hello >> prep_olist_files_task
+    dag_prep >> postgres_hello >> prep_olist_files_task
 
