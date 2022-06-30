@@ -5,9 +5,6 @@ from airflow.operators.bash import BashOperator
 from airflow.providers.postgres.operators.postgres import PostgresOperator
 
 from datetime import datetime
-
-
-from prep.build_directories import build_directories
 from prep.preprocessing import prep_olist_files
 
 default_args = {
