@@ -15,11 +15,9 @@ default_args = {
     "owner": "Airflow" 
 }
 
-init_query = "SELECT 'HELLO BITCHES'"
+init_query = "SELECT 'HELLO POSTGRES'"
+prep_file = "/opt/airflow/dags/prep/scripts/dag_prep.sh"
 
-def print_cwd():
-    import os
-    print(os.getcwd())
 
 
 with DAG(dag_id="prep", schedule_interval=None, default_args=default_args) as dag:
@@ -27,7 +25,7 @@ with DAG(dag_id="prep", schedule_interval=None, default_args=default_args) as da
 
     dag_prep = BashOperator(
         task_id = "prep_dag_script",
-        bash_command = "/opt/airflow/dags/prep/scripts/entrypoint_dag_prep.sh "
+        bash_command = f"chmod +x {prep_file} && bash {prep_file} "
     )
 
     postgres_hello = PostgresOperator(
