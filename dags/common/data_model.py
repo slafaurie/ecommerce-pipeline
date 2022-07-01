@@ -42,6 +42,7 @@ class DataModel:
         if not os.path.exists(path):
             raise Exception(f"{path} is not found")
         df = pd.read_parquet(path)
+        cls._logger.info(f"Loaded {df.shape[0]} rows")
         return df
 
     @classmethod
@@ -81,10 +82,7 @@ class DataModel:
         """
         Read a parquet file stored in S3 and return a dataframe
         """
-        cls._logger.info(f"Reading file {dataset} in {zone} zone")
-        if not cls.local:
-            raise Exception("Method not implemented yet")
-    
+        cls._logger.info(f"Reading file {dataset} in {zone} zone")    
         path = os.path.join(cls.work_dir, zone, dataset)
 
         if not os.path.exists(path):
@@ -94,6 +92,7 @@ class DataModel:
         if len(files) == 0:
             return None
         df = pd.concat([pd.read_parquet(os.path.join(path, file)) for file in files], ignore_index=True)
+        cls._logger.info(f"Loaded {df.shape[0]} rows")
         return df
 
 
@@ -104,9 +103,6 @@ class DataModel:
         """
 
         cls._logger.info(f"Writing file {dataset} in {zone} zone")
-        if not cls.local:
-            raise Exception("Method not implemented yet")
-
         if partition_column not in df.columns:
             raise Exception("Partition is not in columns")
 
