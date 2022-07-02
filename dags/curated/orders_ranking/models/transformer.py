@@ -111,7 +111,7 @@ class OrderRankingTransformer:
         return df_
 
     @classmethod
-    def curate_order_rankings(cls, df_):
+    def curate_sources(cls, df_):
 
         return (
             df_
