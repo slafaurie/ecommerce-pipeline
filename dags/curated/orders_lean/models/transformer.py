@@ -234,7 +234,8 @@ class OrderLeanTransformer(BaseTransformer):
     def curate_sources(cls, orders, payments, items, seller, customer):
 
         if orders is None:
-            return pd.DataFrame
+            return pd.DataFrame()
+            
         payments_stg = PaymentTransformer.transform_payment(payments)
         items_stg = ItemTransformer.transform_items(items)
 

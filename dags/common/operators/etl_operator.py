@@ -28,11 +28,19 @@ class ETLOperator(BaseOperator):
 
 
         # Load
-        self.add_partition_dates_to_partitioned_tables()
-        load_partitioned_sources = [DataModel.read_partitioned_dataframe(*inputs) for inputs in self.sources_dict.get("partitioned")]
-        load_non_partitioned_sources = [DataModel.read_dataframe(*inputs) for inputs in self.sources_dict.get("full_tables")]
+        if self.sources_dict.get("partitioned") is not None:
+            self.add_partition_dates_to_partitioned_tables()
+            load_partitioned_sources = [DataModel.read_partitioned_dataframe(*inputs) for inputs in self.sources_dict.get("partitioned")]
+        else:
+            load_partitioned_sources = []
+
+        if self.sources_dict.get("full_tables") is not None:
+            load_non_partitioned_sources = [DataModel.read_dataframe(*inputs) for inputs in self.sources_dict.get("full_tables")]
+        else:
+            load_non_partitioned_sources = []
         all_sources = load_partitioned_sources + load_non_partitioned_sources
 
+        
         # transform
         self.log.info("Start transformation process...")
         output = self.transformer_callable.curate_sources(*all_sources)
