@@ -12,10 +12,14 @@ default_args = {
     "owner": "Airflow" 
 }
 
-init_query = "SELECT 'HELLO POSTGRES'"
+
 prep_file = "/opt/airflow/dags/prep/scripts/dag_prep.sh"
 
 
+init_query = "SELECT 'HELLO POSTGRES'"
+
+schema_query = open("/opt/airflow/dags/prep/scripts/create_schema.sql","r").read()
+orders_schema_query = open("/opt/airflow/dags/prep/scripts/create_tables.sql", "r").read()
 
 with DAG(dag_id="prep", schedule_interval=None, default_args=default_args) as dag:
 
@@ -26,15 +30,28 @@ with DAG(dag_id="prep", schedule_interval=None, default_args=default_args) as da
     )
 
     postgres_hello = PostgresOperator(
-        task_id = "prep-postgres",
+        task_id = "hello_postgres",
         postgres_conn_id = "postgres_ecommerce",
         sql=init_query
     )
 
-    prep_olist_files_task = PythonOperator(
-        task_id = "prep-olist-files",
-        python_callable=prep_olist_files
+    postgres_schema = PostgresOperator(
+        task_id = "schema_postgres",
+        postgres_conn_id = "postgres_ecommerce",
+        sql=schema_query
     )
 
-    dag_prep >> postgres_hello >> prep_olist_files_task
+    postgres_tables = PostgresOperator(
+        task_id = "tables_postgres",
+        postgres_conn_id = "postgres_ecommerce",
+        sql=orders_schema_query
+    )
+
+
+    # prep_olist_files_task = PythonOperator(
+    #     task_id = "prep-olist-files",
+    #     python_callable=prep_olist_files
+    # )
+
+    dag_prep >> postgres_hello >> postgres_schema >> postgres_tables
 
