@@ -3,6 +3,7 @@ from datetime import datetime
 
 
 from common.operators.datamarts import DataMartOperator
+from airflow.sensors.external_task_sensor import ExternalTaskSensor
 
 
 
@@ -24,10 +25,17 @@ with DAG(
         }
     ) as dag:
 
+    external_task = ExternalTaskSensor(
+        task_id="curated-sensor",
+        external_dag_id="curated-dags",
+        external_task_id= "end-curated-dags"
+    )
+
     factory = DataMartOperator(
         conn_id = "postgres_ecommerce",
         dag = dag,
-        folder = "dags/datamarts"
+        folder = "dags/datamarts",
+        sensor=external_task
     )
 
     factory.build_tasks()

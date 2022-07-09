@@ -10,10 +10,11 @@ class DataMartOperator:
     DROP TABLE datamart.{0};
     """
 
-    def __init__(self, dag, folder, conn_id):
+    def __init__(self, dag, folder, conn_id, sensor):
         self.dag = dag
         self.folder = folder
         self.conn_id = conn_id
+        self.sensor = sensor
 
     def list_files_in_folder(self):
         return [ x for x in os.listdir(self.folder) if ".sql" in x]
@@ -41,6 +42,7 @@ class DataMartOperator:
             sql=task_query, 
             dag = self.dag
         )
+        task_obj.set_upstream(self.sensor)
         
     def build_tasks(self):
         for f in self.list_files_in_folder():
