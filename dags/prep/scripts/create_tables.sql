@@ -1,6 +1,6 @@
 DROP TABLE IF EXISTS public.orders;
 CREATE TABLE public.orders (
-"order_id" PRIMARY KEY TEXT,
+"order_id"   TEXT,
   "customer_id" TEXT,
   "order_status" TEXT,
   "order_purchase_timestamp" TIMESTAMP,
@@ -49,7 +49,7 @@ CREATE TABLE public.orders (
 
 DROP TABLE IF EXISTS staging.orders;
 CREATE TABLE staging.orders (
-"order_id" PRIMARY KEY TEXT,
+"order_id"  TEXT,
   "customer_id" TEXT,
   "order_status" TEXT,
   "order_purchase_timestamp" TIMESTAMP,

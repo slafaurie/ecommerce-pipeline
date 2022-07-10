@@ -1,9 +1,13 @@
 from airflow import DAG, macros
 from airflow.operators.dummy import DummyOperator
+from airflow.operators.python import BranchPythonOperator, PythonOperator
+
 
 from datetime import datetime
+import time
 
 
+from common.datalake import Datalake
 from common.operators.etl_operator import ETLOperator
 from common.operators.postgres import DataLake2PostgresOperator, Staging2CuratedOperator
 
@@ -21,6 +25,20 @@ default_args = {
     "wait_for_downstream":True
 }
 
+def check_order_data(start, end):
+    tmp = Datalake.read_partitioned_dataframe(zone="curated", dataset="orders", partition_dates=[start,end])
+    if tmp is None:
+        print("No data today, no need to load data to postgres")
+        return ["no-order"]
+    else:
+        return ["postgres-staging-orders", "postgres-curated-orders"]
+
+def sleep_dagrun():
+    """
+    Introduce a lag between dags runs to mimic time betweens two days
+    """
+    time.sleep(60*2)
+
 
 with DAG(
     dag_id="curated-dags", 
@@ -34,6 +52,11 @@ with DAG(
 
     dummy_start = DummyOperator(
         task_id = "start-curated-dags"
+    )
+
+    sleep_dag = PythonOperator(
+        task_id="sleep_dagrun",
+        python_callable=sleep_dagrun
     )
 
 
@@ -100,11 +123,31 @@ with DAG(
         key = "order_id"
     )
 
+    skip_postgres_load = DummyOperator(
+        task_id = "no-order"
+    )
+
+    branch_task = BranchPythonOperator(
+        task_id="check_order_data",
+        python_callable= check_order_data,
+        op_kwargs = {
+            "start": "{{macros.ds_add(ds, -7)}}",
+             "end":"{{ ds }}"
+             }
+        
+    )
+
+    end_branch = DummyOperator(task_id="end_branch", trigger_rule="none_failed")
+
 
     dummy_end = DummyOperator(
         task_id = "end-curated-dags"
     )
 
-    dummy_start >> curated_orders_lean >> curated_order_rankings >> curated_orders
-    curated_orders >> staging_postgres_orders >> curated_postgres_orders >> dummy_end
+    dummy_start >> sleep_dag >> curated_orders_lean >> curated_order_rankings >> curated_orders
+    curated_orders >> branch_task
+    branch_task >> staging_postgres_orders >> curated_postgres_orders >> end_branch
+    branch_task >> skip_postgres_load >> end_branch
+    end_branch >> dummy_end
+
 

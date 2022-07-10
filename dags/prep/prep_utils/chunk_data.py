@@ -3,7 +3,7 @@ import os
 from typing import List, Tuple
 from datetime import datetime
 from prep.prep_utils.constants import FilePath, DateColumns
-from common.data_model import DataModel
+from common.datalake import Datalake
 
 
 def _get_orders_with_dates(df: pd.DataFrame) -> Tuple[List[datetime], pd.DataFrame]:
@@ -64,7 +64,7 @@ def chunk_dataframe(df, dataset, dates, orders_with_date):
     # dates, orders_with_date = filter_days_without_items_and_payments(DataRoot.return_orders_path())
 
     # print(f"Creating chunks for {dataset}")
-    folder = os.path.join(DataModel.return_zone_path(FilePath.SAVE_ZONE), dataset).split(".")[0]
+    folder = os.path.join(Datalake.return_zone_path(FilePath.SAVE_ZONE), dataset).split(".")[0]
 
     # read_df and create generator:
     df = df.pipe(_add_date_column, orders_with_date)

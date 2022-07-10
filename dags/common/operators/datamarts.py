@@ -7,7 +7,7 @@ from airflow.providers.postgres.operators.postgres import PostgresOperator
 class DataMartOperator:
     TARGET_REGEX = r'.*?\"(.*)\"'
     DROP_TARGET = """
-    DROP TABLE datamart.{0};
+    DROP TABLE IF EXSITS datamart.{0};
     """
 
     def __init__(self, dag, folder, conn_id, sensor):
