@@ -3,7 +3,7 @@ from airflow.operators.dummy import DummyOperator
 from airflow.operators.python import BranchPythonOperator, PythonOperator
 
 
-from datetime import datetime
+from datetime import datetime, timedelta
 import time
 
 
@@ -14,12 +14,13 @@ from common.operators.postgres import DataLake2PostgresOperator, Staging2Curated
 from curated.orders_lean.models.transformer import OrderLeanTransformer
 from curated.orders_ranking.models.transformer import OrderRankingTransformer
 from curated.orders.models.transformer import OrdersTransformer
+from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 
 
 
 
 default_args = {
-    "start_date": datetime(2016,9,5),
+    "start_date": datetime(2016,9,6),
     "end_date": datetime(2018,10,20),
     "owner": "Airflow" ,
     "wait_for_downstream":True
@@ -37,14 +38,15 @@ def sleep_dagrun():
     """
     Introduce a lag between dags runs to mimic time betweens two days
     """
-    time.sleep(60*2)
+    time.sleep(30*1)
 
 
 with DAG(
     dag_id="curated-dags", 
-    schedule_interval= "@daily",
+    schedule_interval= timedelta(days=4),
      default_args=default_args, 
      catchup=True,
+     max_active_runs=1,
      user_defined_macros={
         "earliest_date":datetime(2016,9,1).strftime("%Y-%m-%d")
      }
@@ -52,11 +54,6 @@ with DAG(
 
     dummy_start = DummyOperator(
         task_id = "start-curated-dags"
-    )
-
-    sleep_dag = PythonOperator(
-        task_id="sleep_dagrun",
-        python_callable=sleep_dagrun
     )
 
 
@@ -144,10 +141,22 @@ with DAG(
         task_id = "end-curated-dags"
     )
 
-    dummy_start >> sleep_dag >> curated_orders_lean >> curated_order_rankings >> curated_orders
+    trigger_datamart = TriggerDagRunOperator(
+        task_id="trigger-datamart",
+        trigger_dag_id="datamart-dags"
+
+    )
+
+    sleep_dag = PythonOperator(
+        task_id="sleep_dagrun",
+        python_callable=sleep_dagrun
+    )
+
+    # dummy_start >> sleep_dag >> curated_orders_lean >> curated_order_rankings >> curated_orders
+    dummy_start >> curated_orders_lean >> curated_order_rankings >> curated_orders
     curated_orders >> branch_task
     branch_task >> staging_postgres_orders >> curated_postgres_orders >> end_branch
     branch_task >> skip_postgres_load >> end_branch
-    end_branch >> dummy_end
+    end_branch >> dummy_end >> trigger_datamart >> sleep_dag
 
 

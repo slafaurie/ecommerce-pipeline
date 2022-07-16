@@ -7,14 +7,14 @@ from airflow.providers.postgres.operators.postgres import PostgresOperator
 class DataMartOperator:
     TARGET_REGEX = r'.*?\"(.*)\"'
     DROP_TARGET = """
-    DROP TABLE IF EXSITS datamart.{0};
+    DROP TABLE IF EXISTS datamart.{0};
     """
 
-    def __init__(self, dag, folder, conn_id, sensor):
+    def __init__(self, dag, folder, conn_id):
         self.dag = dag
         self.folder = folder
         self.conn_id = conn_id
-        self.sensor = sensor
+        # self.sensor = sensor
 
     def list_files_in_folder(self):
         return [ x for x in os.listdir(self.folder) if ".sql" in x]
@@ -42,7 +42,7 @@ class DataMartOperator:
             sql=task_query, 
             dag = self.dag
         )
-        task_obj.set_upstream(self.sensor)
+        # task_obj.set_upstream(self.sensor)
         
     def build_tasks(self):
         for f in self.list_files_in_folder():
