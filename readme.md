@@ -15,7 +15,7 @@ The following skills are demonstrated in this project:
 
 ![Original scheme](static/olist-scheme.png)
 
-![Curated Dag](statitc/curated-orders-dag.png)
+![Curated Dag](static/curated-orders-dag.png)
 
 
 ## Data
