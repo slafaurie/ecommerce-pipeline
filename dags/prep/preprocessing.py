@@ -2,7 +2,7 @@ import pandas as pd
 import os
 import logging
 
-from common.data_model import DataModel 
+from common.datalake import Datalake 
 
 from prep.prep_utils.constants import FilePath
 from prep.prep_utils.preprocess import get_orders_with_multiple_seller, remove_order_with_multiple_seller
@@ -24,7 +24,7 @@ def save_to_parquet(df_, filename):
     Save file to parquet
     """
 
-    DataModel.write_dataframe(df_, FilePath.SAVE_ZONE, filename.split(".")[0] + ".parquet")
+    Datalake.write_dataframe(df_, FilePath.SAVE_ZONE, filename.split(".")[0] + ".parquet")
 
    
 def prep_orders_datasets(df: pd.DataFrame, dataset:str, orders_with_multiple_seller:pd.DataFrame, dates: List[str], orders_with_dates):
@@ -39,16 +39,16 @@ def prep_orders_datasets(df: pd.DataFrame, dataset:str, orders_with_multiple_sel
 def prep_non_orders_dataset(dataset:str):
     logging.info(f"Preparing {dataset}...")
     (
-        DataModel.read_csv_as_dataframe(FilePath.ZONE, dataset)
+        Datalake.read_csv_as_dataframe(FilePath.ZONE, dataset)
         .pipe(save_to_parquet, dataset)
     )
 
 
 def prep_olist_files():
     # load required data for prep in cs
-    items = DataModel.read_csv_as_dataframe(FilePath.ZONE, FilePath.ITEMS)
-    orders = DataModel.read_csv_as_dataframe(FilePath.ZONE, FilePath.ORDERS)
-    payments = DataModel.read_csv_as_dataframe(FilePath.ZONE, FilePath.PAYMENTS)
+    items = Datalake.read_csv_as_dataframe(FilePath.ZONE, FilePath.ITEMS)
+    orders = Datalake.read_csv_as_dataframe(FilePath.ZONE, FilePath.ORDERS)
+    payments = Datalake.read_csv_as_dataframe(FilePath.ZONE, FilePath.PAYMENTS)
 
 
     # prep - prep

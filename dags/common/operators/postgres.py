@@ -3,7 +3,7 @@ from airflow.utils.decorators import apply_defaults
 from airflow.providers.postgres.hooks.postgres import PostgresHook
 
 import pandas as pd
-from common.data_model import DataModel
+from common.datalake import Datalake
 
 
 class DataLake2PostgresOperator(BaseOperator):
@@ -23,7 +23,7 @@ class DataLake2PostgresOperator(BaseOperator):
         hook = PostgresHook(self.postgres_conn_id)
         engine = hook.get_sqlalchemy_engine()
 
-        data_to_save = DataModel.read_partitioned_dataframe(self.zone, self.name, [self._start, self._end])
+        data_to_save = Datalake.read_partitioned_dataframe(self.zone, self.name, [self._start, self._end])
 
 
         data_to_save.to_sql(

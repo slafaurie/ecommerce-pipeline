@@ -1,6 +1,6 @@
 from airflow.models import BaseOperator
 from airflow.utils.decorators import apply_defaults
-from common.data_model import DataModel
+from common.datalake import Datalake
 
 
 class ETLOperator(BaseOperator):
@@ -30,12 +30,12 @@ class ETLOperator(BaseOperator):
         # Load
         if self.sources_dict.get("partitioned") is not None:
             self.add_partition_dates_to_partitioned_tables()
-            load_partitioned_sources = [DataModel.read_partitioned_dataframe(*inputs) for inputs in self.sources_dict.get("partitioned")]
+            load_partitioned_sources = [Datalake.read_partitioned_dataframe(*inputs) for inputs in self.sources_dict.get("partitioned")]
         else:
             load_partitioned_sources = []
 
         if self.sources_dict.get("full_tables") is not None:
-            load_non_partitioned_sources = [DataModel.read_dataframe(*inputs) for inputs in self.sources_dict.get("full_tables")]
+            load_non_partitioned_sources = [Datalake.read_dataframe(*inputs) for inputs in self.sources_dict.get("full_tables")]
         else:
             load_non_partitioned_sources = []
         all_sources = load_partitioned_sources + load_non_partitioned_sources
@@ -49,5 +49,8 @@ class ETLOperator(BaseOperator):
         if output.empty:
             self.log.info("No data to process")
         else:
-            DataModel.write_partitioned_dataframe(output, *self.output_params)
+            Datalake.write_partitioned_dataframe(output, *self.output_params)
         self.log.info("Curation done")
+
+
+

@@ -48,10 +48,10 @@ with DAG(dag_id="prep", schedule_interval=None, default_args=default_args) as da
     )
 
 
-    # prep_olist_files_task = PythonOperator(
-    #     task_id = "prep-olist-files",
-    #     python_callable=prep_olist_files
-    # )
+    prep_olist_files_task = PythonOperator(
+        task_id = "prep-olist-files",
+        python_callable=prep_olist_files
+    )
 
-    dag_prep >> postgres_hello >> postgres_schema >> postgres_tables
+    dag_prep >> postgres_hello >> postgres_schema >> postgres_tables >> prep_olist_files_task
 

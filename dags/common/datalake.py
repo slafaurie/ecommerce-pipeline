@@ -3,7 +3,7 @@ import pandas as pd
 import logging
 from typing import List
 
-class DataModel:
+class Datalake:
 
     """
     Class to handle all load/export within the ETL
