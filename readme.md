@@ -1,6 +1,6 @@
 # End-to-End E-commerce pipeline
 
-Build a data pipeline that take normalized production tables and outputs a curated table suitable for business consumption available.
+Build a data pipeline that take normalized production tables and outputs a curated table suitable for business consumption available. By suitable I refer to have One Big Table (OBT) that contains all order data. From this curated table, datamarts can be created depending the business metric to compute. 
 This project mimic a real world scenario where the pipeline runs daily and process a batch of data from operational sources, process it and then loads the data into a Data Warehouse. 
 
 The following skills are demonstrated in this project:
@@ -13,8 +13,11 @@ The following skills are demonstrated in this project:
     - Docker and Docker compose for environment reproducibility.
 
 
+This is the original scheme
 ![Original scheme](static/olist-scheme.png)
 
+
+This is the resulting dag
 ![Curated Dag](static/curated-orders-dag.png)
 
 
